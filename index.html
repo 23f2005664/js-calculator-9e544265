@@ -5,37 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated App</title>
     <style>body {
+  font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background-color: #f0f0f0;
-  margin: 0;
 }
 .calculator {
-  border: 2px solid #333;
-  border-radius: 8px;
-  padding: 16px;
   background-color: #fff;
-  box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
-  width: 240px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-.display {
-  width: 100%;
+#display {
+  width: 240px;
   height: 40px;
   font-size: 1.2em;
   text-align: right;
-  padding: 8px;
-  box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 .buttons {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, 60px);
+  gap: 10px;
 }
-.btn {
-  padding: 12px;
+button {
+  height: 40px;
   font-size: 1em;
   border: none;
   border-radius: 4px;
@@ -43,8 +42,15 @@
   background-color: #e0e0e0;
   transition: background-color 0.2s;
 }
-.btn:hover {
+button:hover {
   background-color: #d0d0d0;
+}
+button.clear {
+  background-color: #ff6666;
+  color: #fff;
+}
+button.clear:hover {
+  background-color: #ff4d4d;
 }
 </style>
 </head>
@@ -54,89 +60,78 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Calculator</title>
+<title>Simple Calculator</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="calculator">
-  <input type="text" class="display" disabled />
+  <input type="text" id="display" disabled />
   <div class="buttons">
-    <button class="btn" data-action="clear">C</button>
-    <button class="btn" data-action="operator">/</button>
-    <button class="btn" data-action="operator">*</button>
-    <button class="btn" data-action="operator">-</button>
-    <button class="btn" data-number="7">7</button>
-    <button class="btn" data-number="8">8</button>
-    <button class="btn" data-number="9">9</button>
-    <button class="btn" data-action="operator">+</button>
-    <button class="btn" data-number="4">4</button>
-    <button class="btn" data-number="5">5</button>
-    <button class="btn" data-number="6">6</button>
-    <button class="btn" data-action="equals">=</button>
-    <button class="btn" data-number="1">1</button>
-    <button class="btn" data-number="2">2</button>
-    <button class="btn" data-number="3">3</button>
-    <button class="btn" data-number="0">0</button>
-    <button class="btn" data-number="." >.</button>
+    <button class="clear" id="clear">C</button>
+    <button class="operator" data-op="/">/</button>
+    <button class="operator" data-op="*">*</button>
+    <button class="operator" data-op="-">-</button>
+    <button class="operator" data-op="+">+</button>
+    <button class="digit" data-digit="7">7</button>
+    <button class="digit" data-digit="8">8</button>
+    <button class="digit" data-digit="9">9</button>
+    <button class="digit" data-digit="4">4</button>
+    <button class="digit" data-digit="5">5</button>
+    <button class="digit" data-digit="6">6</button>
+    <button class="digit" data-digit="1">1</button>
+    <button class="digit" data-digit="2">2</button>
+    <button class="digit" data-digit="3">3</button>
+    <button class="digit" data-digit="0">0</button>
+    <button class="equals" id="equals">=</button>
   </div>
 </div>
 <script src="script.js"></script>
 </body>
 </html>
-    <script>const display = document.querySelector('.display');
-const buttons = document.querySelectorAll('.btn');
+    <script>const display = document.getElementById('display');
+const clearBtn = document.getElementById('clear');
+const equalsBtn = document.getElementById('equals');
+const digitButtons = document.querySelectorAll('.digit');
+const operatorButtons = document.querySelectorAll('.operator');
+
 let currentInput = '';
-let previousInput = '';
-let operation = null;
+let lastInputWasOperator = false;
 
-function updateDisplay() {
-  display.value = currentInput;
-}
-
-buttons.forEach(button => {
+digitButtons.forEach(button => {
   button.addEventListener('click', () => {
-    const action = button.dataset.action;
-    const number = button.dataset.number;
-    if (number !== undefined) {
-      currentInput += number;
-      updateDisplay();
-    } else if (action === 'clear') {
-      currentInput = '';
-      previousInput = '';
-      operation = null;
-      updateDisplay();
-    } else if (action === 'operator') {
-      if (currentInput === '') return;
-      if (previousInput !== '') {
-        currentInput = evaluate(previousInput, currentInput, operation);
-        previousInput = '';
-      }
-      operation = button.textContent;
-      previousInput = currentInput;
-      currentInput = '';
-    } else if (action === 'equals') {
-      if (previousInput !== '' && currentInput !== '' && operation) {
-        currentInput = evaluate(previousInput, currentInput, operation);
-        previousInput = '';
-        operation = null;
-        updateDisplay();
-      }
+    currentInput += button.dataset.digit;
+    display.value = currentInput;
+    lastInputWasOperator = false;
+  });
+});
+
+operatorButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    if (currentInput !== '' && !lastInputWasOperator) {
+      currentInput += ' ' + button.dataset.op + ' ';
+      display.value = currentInput;
+      lastInputWasOperator = true;
     }
   });
 });
 
-function evaluate(prev, current, op) {
-  const prevNum = parseFloat(prev);
-  const currentNum = parseFloat(current);
-  if (isNaN(prevNum) || isNaN(currentNum)) return '';
-  switch (op) {
-    case '+': return (prevNum + currentNum).toString();
-    case '-': return (prevNum - currentNum).toString();
-    case '*': return (prevNum * currentNum).toString();
-    case '/': return currentNum === 0 ? 'Error' : (prevNum / currentNum).toString();
-    default: return '';
+document.getElementById('equals').addEventListener('click', () => {
+  try {
+    // Evaluate the expression safely
+    // Replace multiple spaces with single space
+    const sanitizedExpression = currentInput.replace(/\s+/g, '');
+    const result = eval(sanitizedExpression);
+    display.value = result;
+    currentInput = result.toString();
+  } catch (e) {
+    display.value = 'Error';
+    currentInput = '';
   }
-}
-</script>
+});
+
+clearBtn.addEventListener('click', () => {
+  currentInput = '';
+  display.value = '';
+});</script>
 </body>
 </html>

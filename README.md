@@ -1,2 +1,6 @@
-# js-calculator-9e544265
-Auto-generated repo for task: js-calculator
+# js-calculator
+
+Round: 1
+
+Brief:
+Create a fully functional calculator with a display, number buttons (0-9), and operator buttons (+, -, *, /). It should handle basic arithmetic.

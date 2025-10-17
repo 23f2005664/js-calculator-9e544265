@@ -5,59 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated App</title>
     <style>body {
-  font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   background-color: #f0f0f0;
+  margin: 0;
 }
 .calculator {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 16px;
   background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
+  width: 240px;
 }
 .display {
   width: 100%;
   height: 40px;
-  font-size: 1.5em;
+  font-size: 1.2em;
   text-align: right;
-  margin-bottom: 10px;
-  padding: 5px 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 8px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
 }
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
-button {
-  height: 50px;
-  font-size: 1.2em;
+.btn {
+  padding: 12px;
+  font-size: 1em;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
   background-color: #e0e0e0;
   transition: background-color 0.2s;
 }
-button:hover {
+.btn:hover {
   background-color: #d0d0d0;
-}
-.clear {
-  grid-column: span 2;
-  background-color: #ff6666;
-  color: #fff;
-}
-.operator {
-  background-color: #66b3ff;
-  color: #fff;
-}
-.equals {
-  grid-column: span 2;
-  background-color: #66ff66;
-  color: #fff;
 }
 </style>
 </head>
@@ -67,101 +54,89 @@ button:hover {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Simple Calculator</title>
+<title>Calculator</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="calculator">
   <input type="text" class="display" disabled />
   <div class="buttons">
-    <button class="clear">C</button>
-    <button class="operator" data-op="+">+</button>
-    <button class="operator" data-op="-">-</button>
-    <button class="operator" data-op="*">*</button>
-    <button class="operator" data-op="/">/</button>
-    <button class="number" data-num="7">7</button>
-    <button class="number" data-num="8">8</button>
-    <button class="number" data-num="9">9</button>
-    <button class="number" data-num="4">4</button>
-    <button class="number" data-num="5">5</button>
-    <button class="number" data-num="6">6</button>
-    <button class="number" data-num="1">1</button>
-    <button class="number" data-num="2">2</button>
-    <button class="number" data-num="3">3</button>
-    <button class="number" data-num="0">0</button>
-    <button class="equals">=</button>
+    <button class="btn" data-action="clear">C</button>
+    <button class="btn" data-action="operator">/</button>
+    <button class="btn" data-action="operator">*</button>
+    <button class="btn" data-action="operator">-</button>
+    <button class="btn" data-number="7">7</button>
+    <button class="btn" data-number="8">8</button>
+    <button class="btn" data-number="9">9</button>
+    <button class="btn" data-action="operator">+</button>
+    <button class="btn" data-number="4">4</button>
+    <button class="btn" data-number="5">5</button>
+    <button class="btn" data-number="6">6</button>
+    <button class="btn" data-action="equals">=</button>
+    <button class="btn" data-number="1">1</button>
+    <button class="btn" data-number="2">2</button>
+    <button class="btn" data-number="3">3</button>
+    <button class="btn" data-number="0">0</button>
+    <button class="btn" data-number="." >.</button>
   </div>
 </div>
 <script src="script.js"></script>
 </body>
 </html>
     <script>const display = document.querySelector('.display');
-const numberButtons = document.querySelectorAll('.number');
-const operatorButtons = document.querySelectorAll('.operator');
-const clearButton = document.querySelector('.clear');
-const equalsButton = document.querySelector('.equals');
-
+const buttons = document.querySelectorAll('.btn');
 let currentInput = '';
 let previousInput = '';
-let currentOperator = null;
+let operation = null;
 
 function updateDisplay() {
   display.value = currentInput;
 }
 
-numberButtons.forEach(button => {
+buttons.forEach(button => {
   button.addEventListener('click', () => {
-    currentInput += button.dataset.num;
-    updateDisplay();
-  });
-});
-
-operatorButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    if (currentInput === '') return;
-    if (previousInput !== '') {
-      compute();
+    const action = button.dataset.action;
+    const number = button.dataset.number;
+    if (number !== undefined) {
+      currentInput += number;
+      updateDisplay();
+    } else if (action === 'clear') {
+      currentInput = '';
+      previousInput = '';
+      operation = null;
+      updateDisplay();
+    } else if (action === 'operator') {
+      if (currentInput === '') return;
+      if (previousInput !== '') {
+        currentInput = evaluate(previousInput, currentInput, operation);
+        previousInput = '';
+      }
+      operation = button.textContent;
+      previousInput = currentInput;
+      currentInput = '';
+    } else if (action === 'equals') {
+      if (previousInput !== '' && currentInput !== '' && operation) {
+        currentInput = evaluate(previousInput, currentInput, operation);
+        previousInput = '';
+        operation = null;
+        updateDisplay();
+      }
     }
-    currentOperator = button.dataset.op;
-    previousInput = currentInput;
-    currentInput = '';
   });
 });
 
-equalsButton.addEventListener('click', () => {
-  if (currentInput === '' || previousInput === '' || !currentOperator) return;
-  compute();
-});
-
-clearButton.addEventListener('click', () => {
-  currentInput = '';
-  previousInput = '';
-  currentOperator = null;
-  updateDisplay();
-});
-
-function compute() {
-  const prev = parseFloat(previousInput);
-  const current = parseFloat(currentInput);
-  let result = 0;
-  switch (currentOperator) {
-    case '+':
-      result = prev + current;
-      break;
-    case '-':
-      result = prev - current;
-      break;
-    case '*':
-      result = prev * current;
-      break;
-    case '/':
-      result = current === 0 ? 'Error' : prev / current;
-      break;
+function evaluate(prev, current, op) {
+  const prevNum = parseFloat(prev);
+  const currentNum = parseFloat(current);
+  if (isNaN(prevNum) || isNaN(currentNum)) return '';
+  switch (op) {
+    case '+': return (prevNum + currentNum).toString();
+    case '-': return (prevNum - currentNum).toString();
+    case '*': return (prevNum * currentNum).toString();
+    case '/': return currentNum === 0 ? 'Error' : (prevNum / currentNum).toString();
+    default: return '';
   }
-  currentInput = result.toString();
-  previousInput = '';
-  currentOperator = null;
-  updateDisplay();
-}</script>
+}
+</script>
 </body>
 </html>

@@ -6,49 +6,47 @@
     <title>Generated App</title>
     <style>body {
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  margin: 0;
+  background-color: #f0f0f0;
 }
 .calculator {
-  background-color: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  width: 240px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  width: 250px;
 }
 .display {
+  height: 40px;
   background-color: #222;
   color: #fff;
-  font-size: 2em;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  font-size: 1.5em;
   text-align: right;
-  min-height: 40px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  overflow-x: auto;
 }
 .buttons {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 .btn {
   padding: 15px;
   font-size: 1em;
   border: none;
-  border-radius: 4px;
-  background-color: #e0e0e0;
+  border-radius: 5px;
+  background-color: #eee;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 .btn:hover {
-  background-color: #d0d0d0;
-}
-.zero {
-  grid-column: span 2;
+  background-color: #ddd;
 }
 </style>
 </head>
@@ -69,23 +67,18 @@
     <button class="btn" data-action="operator" data-value="+">+</button>
     <button class="btn" data-action="operator" data-value="-">-</button>
     <button class="btn" data-action="operator" data-value="*">*</button>
-
-    <button class="btn" data-value="7">7</button>
-    <button class="btn" data-value="8">8</button>
-    <button class="btn" data-value="9">9</button>
     <button class="btn" data-action="operator" data-value="/">/</button>
-
-    <button class="btn" data-value="4">4</button>
-    <button class="btn" data-value="5">5</button>
-    <button class="btn" data-value="6">6</button>
+    <button class="btn" data-action="number" data-value="7">7</button>
+    <button class="btn" data-action="number" data-value="8">8</button>
+    <button class="btn" data-action="number" data-value="9">9</button>
+    <button class="btn" data-action="number" data-value="4">4</button>
+    <button class="btn" data-action="number" data-value="5">5</button>
+    <button class="btn" data-action="number" data-value="6">6</button>
+    <button class="btn" data-action="number" data-value="1">1</button>
+    <button class="btn" data-action="number" data-value="2">2</button>
+    <button class="btn" data-action="number" data-value="3">3</button>
+    <button class="btn" data-action="number" data-value="0">0</button>
     <button class="btn" data-action="equals">=</button>
-
-    <button class="btn" data-value="1">1</button>
-    <button class="btn" data-value="2">2</button>
-    <button class="btn" data-value="3">3</button>
-    <button class="btn" data-action="addDecimal">.</button>
-
-    <button class="btn zero" data-value="0">0</button>
   </div>
 </div>
 <script src="script.js"></script>
@@ -96,85 +89,64 @@ const buttons = document.querySelectorAll('.btn');
 let currentInput = '';
 let previousInput = '';
 let operator = null;
-let shouldResetScreen = false;
+let resultDisplayed = false;
 
 function updateDisplay() {
   display.textContent = currentInput || '0';
-}
-
-function clearAll() {
-  currentInput = '';
-  previousInput = '';
-  operator = null;
-}
-
-function appendNumber(number) {
-  if (number === '.' && currentInput.includes('.')) return;
-  if (shouldResetScreen) {
-    currentInput = '';
-    shouldResetScreen = false;
-  }
-  currentInput += number;
-}
-
-function chooseOperator(op) {
-  if (currentInput === '') return;
-  if (previousInput !== '') {
-    compute();
-  }
-  operator = op;
-  previousInput = currentInput;
-  shouldResetScreen = true;
-}
-
-function compute() {
-  let computation;
-  const prev = parseFloat(previousInput);
-  const current = parseFloat(currentInput);
-  if (isNaN(prev) || isNaN(current)) return;
-  switch (operator) {
-    case '+':
-      computation = prev + current;
-      break;
-    case '-':
-      computation = prev - current;
-      break;
-    case '*':
-      computation = prev * current;
-      break;
-    case '/':
-      if (current === 0) {
-        computation = 'Error';
-      } else {
-        computation = prev / current;
-      }
-      break;
-    default:
-      return;
-  }
-  currentInput = computation.toString();
-  operator = null;
-  previousInput = '';
 }
 
 buttons.forEach(button => {
   button.addEventListener('click', () => {
     const action = button.dataset.action;
     const value = button.dataset.value;
-    if (value !== undefined) {
-      appendNumber(value);
-    } else if (action === 'clear') {
-      clearAll();
+
+    if (action === 'number') {
+      if (resultDisplayed) {
+        currentInput = value;
+        resultDisplayed = false;
+      } else {
+        currentInput += value;
+      }
+      updateDisplay();
     } else if (action === 'operator') {
-      chooseOperator(value);
+      if (currentInput === '') return;
+      if (previousInput !== '') {
+        currentInput = evaluate(previousInput, currentInput, operator);
+        updateDisplay();
+      }
+      previousInput = currentInput;
+      operator = value;
+      currentInput = '';
     } else if (action === 'equals') {
-      compute();
-    } else if (action === 'addDecimal') {
-      appendNumber('.');
+      if (previousInput !== '' && currentInput !== '' && operator) {
+        currentInput = evaluate(previousInput, currentInput, operator);
+        updateDisplay();
+        previousInput = '';
+        operator = null;
+        resultDisplayed = true;
+      }
+    } else if (action === 'clear') {
+      currentInput = '';
+      previousInput = '';
+      operator = null;
+      updateDisplay();
     }
-    updateDisplay();
   });
 });
+
+function evaluate(a, b, op) {
+  const numA = parseFloat(a);
+  const numB = parseFloat(b);
+  if (isNaN(numA) || isNaN(numB)) return '';
+  switch (op) {
+    case '+': return (numA + numB).toString();
+    case '-': return (numA - numB).toString();
+    case '*': return (numA * numB).toString();
+    case '/': return numB === 0 ? 'Error' : (numA / numB).toString();
+    default: return '';
+  }
+}
+
 updateDisplay();</script>
 </body>
 </html>

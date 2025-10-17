@@ -1,6 +1,6 @@
 # js-calculator
 
-Round: 1
+Round: 2
 
 Brief:
-Create a fully functional calculator.
+Update the calculator to include a 'Clear' (C) button that resets the current calculation.
